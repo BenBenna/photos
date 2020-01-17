@@ -9,14 +9,23 @@
 			class="grid-filler grid-filler--top"
 			role="none" />
 
-		<!-- files list -->
-		<component :is="component(item)"
-			v-for="(item, index) in shownList"
-			:key="item.fileid"
-			:ref="`item-${index}`"
-			:class="`row-${getRowNumber(index)}`"
-			:list="list"
-			v-bind="props(item)" />
+		<template v-for="(item, index) in shownList">
+			<div v-if="index == 0 || getFormatedDate(item.lastmod) != getFormatedDate(shownList[index - 1].lastmod)"
+				v-show="true"
+				:key="item.lastmod"
+				role="none"
+				class="grid-title">
+				<h2>{{ getHumanReadableDate(item.lastmod) }}</h2>
+			</div>
+
+			<!-- files list -->
+			<component :is="component(item)"
+				:key="item.fileid"
+				:ref="`item-${index}`"
+				:class="`row-${getRowNumber(index)}`"
+				:list="list"
+				v-bind="props(item)" />
+		</template>
 
 		<!-- next page loading indicator -->
 		<div v-if="loadingPage"
@@ -35,6 +44,7 @@
 </template>
 
 <script>
+import * as moment from 'moment'
 import { requestTimeout, clearRequestTimeout } from '@essentials/request-timeout'
 import Grid from './Grid'
 import GridConfigMixin from '../mixins/GridConfig'
@@ -191,6 +201,15 @@ export default {
 		roundToTen(number) {
 			return Math.floor(number / 10) * 10
 		},
+
+		getFormatedDate(string) {
+			return moment(string).format('MMMM D YYYY')
+		},
+
+		getHumanReadableDate(string) {
+			return moment(string).format('dddd, MMMM Do YYYY')
+		},
+
 	},
 }
 </script>
@@ -204,5 +223,10 @@ export default {
 .grid-loading {
 	grid-column: 1/-1;
 	height: 88px;
+}
+
+.grid-title {
+	grid-column: 1/8;
+	margin: 12px 0 0 0;
 }
 </style>
