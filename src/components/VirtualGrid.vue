@@ -10,13 +10,15 @@
 			role="none" />
 
 		<template v-for="(item, index) in shownList">
-			<div v-if="index == 0 || getFormatedDate(item.lastmod) != getFormatedDate(shownList[index - 1].lastmod)"
+			<h2 v-if="index == 0 ||
+					getFormatedDate(item.lastmod, 'MMMM YYYY') != getFormatedDate(shownList[index - 1].lastmod,'MMMM YYYY')"
 				v-show="true"
 				:key="item.lastmod"
 				role="none"
-				class="grid-title">
-				<h2>{{ getHumanReadableDate(item.lastmod) }}</h2>
-			</div>
+				:class="['grid-title', index == 0 ? 'first-title' : '']">
+				{{ getFormatedDate(item.lastmod, 'MMMM') }}
+				<span>{{ getFormatedDate(item.lastmod, 'YYYY') }}</span>
+			</h2>
 
 			<!-- files list -->
 			<component :is="component(item)"
@@ -202,12 +204,8 @@ export default {
 			return Math.floor(number / 10) * 10
 		},
 
-		getFormatedDate(string) {
-			return moment(string).format('MMMM D YYYY')
-		},
-
-		getHumanReadableDate(string) {
-			return moment(string).format('dddd, MMMM Do YYYY')
+		getFormatedDate(string, format) {
+			return moment(string).format(format)
 		},
 
 	},
@@ -227,6 +225,16 @@ export default {
 
 .grid-title {
 	grid-column: 1/8;
-	margin: 12px 0 0 0;
+	padding: 36px 0 12px 0;
+	background:#fff;
+	margin: 0;
+
+	span {
+		font-weight: normal;
+	}
+
+	&.first-title {
+		padding: 0 0 12px 0;
+	}
 }
 </style>

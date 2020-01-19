@@ -12844,6 +12844,8 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
 
 
 
@@ -12994,11 +12996,8 @@ var DEFAULT_SCROLLING_RESET_TIME_INTERVAL = 150;
     roundToTen: function roundToTen(number) {
       return Math.floor(number / 10) * 10;
     },
-    getFormatedDate: function getFormatedDate(string) {
-      return moment__WEBPACK_IMPORTED_MODULE_0__(string).format('MMMM D YYYY');
-    },
-    getHumanReadableDate: function getHumanReadableDate(string) {
-      return moment__WEBPACK_IMPORTED_MODULE_0__(string).format('dddd, MMMM Do YYYY');
+    getFormatedDate: function getFormatedDate(string, format) {
+      return moment__WEBPACK_IMPORTED_MODULE_0__(string).format(format);
     }
   }
 });
@@ -28240,7 +28239,7 @@ module.exports = exports;
 var ___CSS_LOADER_API_IMPORT___ = __webpack_require__(/*! ../../node_modules/css-loader/dist/runtime/api.js */ "./node_modules/css-loader/dist/runtime/api.js");
 exports = ___CSS_LOADER_API_IMPORT___(false);
 // Module
-exports.push([module.i, ".grid-filler[data-v-178c031e] {\n  grid-column-end: -1;\n}\n.grid-loading[data-v-178c031e] {\n  grid-column: 1/-1;\n  height: 88px;\n}\n.grid-title[data-v-178c031e] {\n  grid-column: 1/8;\n  margin: 12px 0 0 0;\n}\n", ""]);
+exports.push([module.i, ".grid-filler[data-v-178c031e] {\n  grid-column-end: -1;\n}\n.grid-loading[data-v-178c031e] {\n  grid-column: 1/-1;\n  height: 88px;\n}\n.grid-title[data-v-178c031e] {\n  grid-column: 1/8;\n  padding: 36px 0 12px 0;\n  background: #fff;\n  margin: 0;\n}\n.grid-title span[data-v-178c031e] {\n    font-weight: normal;\n}\n.grid-title.first-title[data-v-178c031e] {\n    padding: 0 0 12px 0;\n}\n", ""]);
 // Exports
 module.exports = exports;
 
@@ -76875,10 +76874,10 @@ var render = function() {
       _vm._l(_vm.shownList, function(item, index) {
         return [
           index == 0 ||
-          _vm.getFormatedDate(item.lastmod) !=
-            _vm.getFormatedDate(_vm.shownList[index - 1].lastmod)
+          _vm.getFormatedDate(item.lastmod, "MMMM YYYY") !=
+            _vm.getFormatedDate(_vm.shownList[index - 1].lastmod, "MMMM YYYY")
             ? _c(
-                "div",
+                "h2",
                 {
                   directives: [
                     {
@@ -76889,12 +76888,17 @@ var render = function() {
                     }
                   ],
                   key: item.lastmod,
-                  staticClass: "grid-title",
+                  class: ["grid-title", index == 0 ? "first-title" : ""],
                   attrs: { role: "none" }
                 },
                 [
-                  _c("h2", [
-                    _vm._v(_vm._s(_vm.getHumanReadableDate(item.lastmod)))
+                  _vm._v(
+                    "\n\t\t\t" +
+                      _vm._s(_vm.getFormatedDate(item.lastmod, "MMMM")) +
+                      "\n\t\t\t"
+                  ),
+                  _c("span", [
+                    _vm._v(_vm._s(_vm.getFormatedDate(item.lastmod, "YYYY")))
                   ])
                 ]
               )
