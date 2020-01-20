@@ -12842,10 +12842,6 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
-//
-//
-//
-//
 
 
 
@@ -12884,54 +12880,13 @@ var DEFAULT_SCROLLING_RESET_TIME_INTERVAL = 150;
       default: false
     }
   },
-  data: function data() {
-    return {
-      shownFirstRow: 0,
-      shownLastRow: this.getRowNumber(this.list.length - 1)
-    };
-  },
-  computed: {
-    shownList: function shownList() {
-      var _this = this;
-
-      return this.list.filter(function (item, index) {
-        return _this.isVisible(index);
-      });
-    },
-
-    /**
-     * Calculate the top filler needed padding
-     * to compensate for the hidden items
-     * @returns {string}
-     */
-    topPadding: function topPadding() {
-      return "".concat(this.shownFirstRow * 100, "%");
-    },
-
-    /**
-     * Calculate the bottom filler needed padding
-     * to compensate for the hidden items
-     * Because bottomShift indicate the index of the last visible item,
-     * we need to calcuta ehow any rows there is to compensate
-     * between bottomShift and the end of the list
-     * @returns {string}
-     */
-    bottomPadding: function bottomPadding() {
-      return "".concat((this.lastRow - this.shownLastRow) * 100, "%");
-    },
-    lastRow: function lastRow() {
-      return this.getRowNumber(this.list.length - 1);
-    }
-  },
   created: function created() {
-    window.addEventListener('resize', this.onDocumentScroll);
     window.addEventListener('scroll', this.onDocumentScroll);
   },
   mounted: function mounted() {
     this.onDocumentScroll();
   },
   beforeDestroy: function beforeDestroy() {
-    window.removeEventListener('resize', this.onDocumentScroll);
     window.removeEventListener('scroll', this.onDocumentScroll);
   },
   methods: {
@@ -12943,58 +12898,16 @@ var DEFAULT_SCROLLING_RESET_TIME_INTERVAL = 150;
         Object(_essentials_request_timeout__WEBPACK_IMPORTED_MODULE_1__["clearRequestTimeout"])(this.debounceOnDocumentScrollRequest);
       }
 
-      this.debounceOnDocumentScrollRequest = Object(_essentials_request_timeout__WEBPACK_IMPORTED_MODULE_1__["requestTimeout"])(this.onDocumentScroll, DEFAULT_SCROLLING_RESET_TIME_INTERVAL //
-      );
+      this.debounceOnDocumentScrollRequest = Object(_essentials_request_timeout__WEBPACK_IMPORTED_MODULE_1__["requestTimeout"])(this.onDocumentScroll, DEFAULT_SCROLLING_RESET_TIME_INTERVAL);
     },
 
     /**
      * Handle document scroll
-     * Detect first visible/hidden to implement virtual scrolling
      */
     onDocumentScroll: function onDocumentScroll() {
-      // get the row height
-      var gridContainer = this.$refs.grid.$el;
-      var gridStyles = getComputedStyle(gridContainer);
-      var rowHeight = parseFloat(gridStyles.gridTemplateColumns.split(' ')[0], 10); // scrolled content
-      // rounding up to tens to make sure we only detect changes by steps of 10px
-
-      var scrolled = this.roundToTen(window.pageYOffset - this.gridConfig.marginTop); // adding one above and one under to have a trigger area of one row
-
-      var shownFirstRow = Math.floor(scrolled / (rowHeight + this.gridConfig.gap)) - 1;
-      var shownLastRow = Math.ceil(window.innerHeight / rowHeight) + shownFirstRow + 1;
-      this.shownFirstRow = Math.max(shownFirstRow, 0); // the first shown row cannot be negative
-
-      this.shownLastRow = Math.min(shownLastRow, this.lastRow); // the last shown row cannot be lower than the last row
-
-      if (this.shownLastRow >= this.lastRow) {
+      if (window.innerHeight + window.pageYOffset >= document.getElementById('timeline').offsetHeight - 256) {
         this.$emit('bottomReached');
       }
-    },
-    isVisible: function isVisible(index) {
-      var row = this.getRowNumber(index);
-      return row >= this.shownFirstRow && row < this.shownLastRow + 1;
-    },
-
-    /**
-     * Return the row number of the provided index
-     *
-     * @param {number} index the index
-     * @returns {number}
-     */
-    getRowNumber: function getRowNumber(index) {
-      // in case the grid config is not here yet, let's
-      var count = this.gridConfig ? this.gridConfig.count : this.list.length;
-      return Math.floor(index / count);
-    },
-
-    /**
-     * Round the provided number to a tens of its value
-     *
-     * @param {number} number the number to round
-     * @returns {number}
-     */
-    roundToTen: function roundToTen(number) {
-      return Math.floor(number / 10) * 10;
     },
     getFormatedDate: function getFormatedDate(string, format) {
       return moment__WEBPACK_IMPORTED_MODULE_0__(string).format(format);
@@ -13743,6 +13656,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 
 
+var loadedRowNumber = 5;
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'Timeline',
   components: {
@@ -13879,7 +13793,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
                 _context3.next = 11;
                 return request(this.onlyFavorites, {
                   page: this.page,
-                  perPage: this.gridConfig.count * 5 // we load 5 rows,
+                  perPage: this.gridConfig.count * loadedRowNumber // we load loadedRowNumber rows,
 
                 });
 
@@ -13887,8 +13801,9 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
                 files = _context3.sent;
                 this.$store.dispatch('updateTimeline', files);
                 this.$store.dispatch('appendFiles', files); // next time we load this script, we load the next page if the list returned
+                // this fails if the last page match exactly "this.gridConfig.count * loadedRowNumber"
 
-                if (files.length === this.gridConfig.count * 5) {
+                if (files.length === this.gridConfig.count * loadedRowNumber) {
                   this.page++;
                 } else {
                   console.debug('We loaded the last page');
@@ -28239,7 +28154,7 @@ module.exports = exports;
 var ___CSS_LOADER_API_IMPORT___ = __webpack_require__(/*! ../../node_modules/css-loader/dist/runtime/api.js */ "./node_modules/css-loader/dist/runtime/api.js");
 exports = ___CSS_LOADER_API_IMPORT___(false);
 // Module
-exports.push([module.i, ".grid-filler[data-v-178c031e] {\n  grid-column-end: -1;\n}\n.grid-loading[data-v-178c031e] {\n  grid-column: 1/-1;\n  height: 88px;\n}\n.grid-title[data-v-178c031e] {\n  grid-column: 1/8;\n  padding: 36px 0 12px 0;\n  background: #fff;\n  margin: 0;\n}\n.grid-title span[data-v-178c031e] {\n    font-weight: normal;\n}\n.grid-title.first-title[data-v-178c031e] {\n    padding: 0 0 12px 0;\n}\n", ""]);
+exports.push([module.i, ".grid-filler[data-v-178c031e] {\n  grid-column-end: -1;\n}\n.grid-loading[data-v-178c031e] {\n  grid-column: 1/-1;\n  height: 88px;\n}\n.grid-title[data-v-178c031e] {\n  grid-column: 1/-1;\n  padding: 36px 0 12px 0;\n  background: #fff;\n  margin: 0;\n}\n.grid-title span[data-v-178c031e] {\n    font-weight: normal;\n}\n.grid-title.first-title[data-v-178c031e] {\n    padding: 0 0 12px 0;\n}\n", ""]);
 // Exports
 module.exports = exports;
 
@@ -76853,40 +76768,26 @@ var render = function() {
   var _c = _vm._self._c || _h
   return _c(
     "Grid",
-    { ref: "grid" },
+    { ref: "grid", attrs: { id: "timeline" } },
     [
-      _c("span", {
-        directives: [
-          {
-            name: "show",
-            rawName: "v-show",
-            value: _vm.shownFirstRow > 0,
-            expression: "shownFirstRow > 0"
-          }
-        ],
-        key: "filler-top",
-        ref: "filler-top",
-        staticClass: "grid-filler grid-filler--top",
-        style: { paddingBottom: _vm.topPadding },
-        attrs: { role: "none" }
-      }),
-      _vm._v(" "),
-      _vm._l(_vm.shownList, function(item, index) {
+      _vm._l(_vm.list, function(item, index) {
         return [
+          index == 0
+            ? _c("span", {
+                key: "filler-top-" + index,
+                ref: "filler-top",
+                refInFor: true,
+                staticClass: "grid-filler grid-filler--top",
+                attrs: { role: "none" }
+              })
+            : _vm._e(),
+          _vm._v(" "),
           index == 0 ||
           _vm.getFormatedDate(item.lastmod, "MMMM YYYY") !=
-            _vm.getFormatedDate(_vm.shownList[index - 1].lastmod, "MMMM YYYY")
+            _vm.getFormatedDate(_vm.list[index - 1].lastmod, "MMMM YYYY")
             ? _c(
                 "h2",
                 {
-                  directives: [
-                    {
-                      name: "show",
-                      rawName: "v-show",
-                      value: true,
-                      expression: "true"
-                    }
-                  ],
                   key: item.lastmod,
                   class: ["grid-title", index == 0 ? "first-title" : ""],
                   attrs: { role: "none" }
@@ -76912,14 +76813,23 @@ var render = function() {
                 ref: "item-" + index,
                 refInFor: true,
                 tag: "component",
-                class: "row-" + _vm.getRowNumber(index),
                 attrs: { list: _vm.list }
               },
               "component",
               _vm.props(item),
               false
             )
-          )
+          ),
+          _vm._v(" "),
+          index == _vm.list.length
+            ? _c("span", {
+                key: "filler-bottom-" + index,
+                ref: "filler-bottom",
+                refInFor: true,
+                staticClass: "grid-filler grid-filler--bottom",
+                attrs: { role: "none" }
+              })
+            : _vm._e()
         ]
       }),
       _vm._v(" "),
@@ -76929,23 +76839,7 @@ var render = function() {
             staticClass: "grid-loading icon-loading",
             attrs: { role: "none" }
           })
-        : _vm._e(),
-      _vm._v(" "),
-      _c("span", {
-        directives: [
-          {
-            name: "show",
-            rawName: "v-show",
-            value: _vm.shownLastRow < _vm.lastRow,
-            expression: "shownLastRow < lastRow"
-          }
-        ],
-        key: "filler-bottom",
-        ref: "filler-bottom",
-        staticClass: "grid-filler grid-filler--bottom",
-        style: { paddingBottom: _vm.bottomPadding },
-        attrs: { role: "none" }
-      })
+        : _vm._e()
     ],
     2
   )

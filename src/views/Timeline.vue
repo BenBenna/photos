@@ -54,6 +54,8 @@ import VirtualGrid from '../components/VirtualGrid'
 import cancelableRequest from '../utils/CancelableRequest'
 import GridConfigMixin from '../mixins/GridConfig'
 
+const loadedRowNumber = 5
+
 export default {
 	name: 'Timeline',
 	components: {
@@ -146,13 +148,14 @@ export default {
 				// get content and current folder info
 				const files = await request(this.onlyFavorites, {
 					page: this.page,
-					perPage: this.gridConfig.count * 5, // we load 5 rows,
+					perPage: this.gridConfig.count * loadedRowNumber, // we load loadedRowNumber rows,
 				})
 				this.$store.dispatch('updateTimeline', files)
 				this.$store.dispatch('appendFiles', files)
 
 				// next time we load this script, we load the next page if the list returned
-				if (files.length === this.gridConfig.count * 5) {
+				// this fails if the last page match exactly "this.gridConfig.count * loadedRowNumber"
+				if (files.length === this.gridConfig.count * loadedRowNumber) {
 					this.page++
 				} else {
 					console.debug('We loaded the last page')

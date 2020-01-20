@@ -1,18 +1,16 @@
 
 <template>
-	<Grid ref="grid">
-		<!-- top spacer -->
-		<span v-show="shownFirstRow > 0"
-			key="filler-top"
-			ref="filler-top"
-			:style="{paddingBottom: topPadding}"
-			class="grid-filler grid-filler--top"
-			role="none" />
+	<Grid id="timeline" ref="grid">
+		<template v-for="(item, index) in list">
+			<!-- top spacer -->
+			<span v-if="index == 0"
+				:key="`filler-top-${index}`"
+				ref="filler-top"
+				class="grid-filler grid-filler--top"
+				role="none" />
 
-		<template v-for="(item, index) in shownList">
 			<h2 v-if="index == 0 ||
-					getFormatedDate(item.lastmod, 'MMMM YYYY') != getFormatedDate(shownList[index - 1].lastmod,'MMMM YYYY')"
-				v-show="true"
+					getFormatedDate(item.lastmod, 'MMMM YYYY') != getFormatedDate(list[index - 1].lastmod,'MMMM YYYY')"
 				:key="item.lastmod"
 				role="none"
 				:class="['grid-title', index == 0 ? 'first-title' : '']">
@@ -24,23 +22,21 @@
 			<component :is="component(item)"
 				:key="item.fileid"
 				:ref="`item-${index}`"
-				:class="`row-${getRowNumber(index)}`"
 				:list="list"
 				v-bind="props(item)" />
+
+			<!-- bottom spacer -->
+			<span v-if="index == list.length"
+				ref="filler-bottom"
+				:key="`filler-bottom-${index}`"
+				class="grid-filler grid-filler--bottom"
+				role="none" />
 		</template>
 
 		<!-- next page loading indicator -->
 		<div v-if="loadingPage"
 			key="grid-loading"
 			class="grid-loading icon-loading"
-			role="none" />
-
-		<!-- bottom spacer -->
-		<span v-show="shownLastRow < lastRow"
-			ref="filler-bottom"
-			key="filler-bottom"
-			:style="{paddingBottom: bottomPadding}"
-			class="grid-filler grid-filler--bottom"
 			role="none" />
 	</Grid>
 </template>
@@ -83,53 +79,13 @@ export default {
 		},
 	},
 
-	data() {
-		return {
-			shownFirstRow: 0,
-			shownLastRow: this.getRowNumber(this.list.length - 1),
-		}
-	},
-
-	computed: {
-
-		shownList() {
-			return this.list.filter((item, index) => this.isVisible(index))
-		},
-
-		/**
-		 * Calculate the top filler needed padding
-		 * to compensate for the hidden items
-		 * @returns {string}
-		 */
-		topPadding() {
-			return `${this.shownFirstRow * 100}%`
-		},
-		/**
-		 * Calculate the bottom filler needed padding
-		 * to compensate for the hidden items
-		 * Because bottomShift indicate the index of the last visible item,
-		 * we need to calcuta ehow any rows there is to compensate
-		 * between bottomShift and the end of the list
-		 * @returns {string}
-		 */
-		bottomPadding() {
-			return `${(this.lastRow - this.shownLastRow) * 100}%`
-		},
-
-		lastRow() {
-			return this.getRowNumber(this.list.length - 1)
-		},
-	},
-
 	created() {
-		window.addEventListener('resize', this.onDocumentScroll)
 		window.addEventListener('scroll', this.onDocumentScroll)
 	},
 	mounted() {
 		this.onDocumentScroll()
 	},
 	beforeDestroy() {
-		window.removeEventListener('resize', this.onDocumentScroll)
 		window.removeEventListener('scroll', this.onDocumentScroll)
 	},
 
@@ -145,63 +101,17 @@ export default {
 
 			this.debounceOnDocumentScrollRequest = requestTimeout(
 				this.onDocumentScroll,
-				DEFAULT_SCROLLING_RESET_TIME_INTERVAL, //
+				DEFAULT_SCROLLING_RESET_TIME_INTERVAL,
 			)
 		},
 
 		/**
 		 * Handle document scroll
-		 * Detect first visible/hidden to implement virtual scrolling
 		 */
 		onDocumentScroll() {
-
-			// get the row height
-			const gridContainer = this.$refs.grid.$el
-			const gridStyles = getComputedStyle(gridContainer)
-			const rowHeight = parseFloat(gridStyles.gridTemplateColumns.split(' ')[0], 10)
-
-			// scrolled content
-			// rounding up to tens to make sure we only detect changes by steps of 10px
-			const scrolled = this.roundToTen(window.pageYOffset - this.gridConfig.marginTop)
-
-			// adding one above and one under to have a trigger area of one row
-			const shownFirstRow = Math.floor(scrolled / (rowHeight + this.gridConfig.gap)) - 1
-			const shownLastRow = Math.ceil(window.innerHeight / rowHeight) + shownFirstRow + 1
-
-			this.shownFirstRow = Math.max(shownFirstRow, 0) // the first shown row cannot be negative
-			this.shownLastRow = Math.min(shownLastRow, this.lastRow) // the last shown row cannot be lower than the last row
-
-			if (this.shownLastRow >= this.lastRow) {
+			if ((window.innerHeight + window.pageYOffset) >= document.getElementById('timeline').offsetHeight - 256) {
 				this.$emit('bottomReached')
 			}
-
-		},
-
-		isVisible(index) {
-			const row = this.getRowNumber(index)
-			return row >= this.shownFirstRow && row < this.shownLastRow + 1
-		},
-
-		/**
-		 * Return the row number of the provided index
-		 *
-		 * @param {number} index the index
-		 * @returns {number}
-		 */
-		getRowNumber(index) {
-			// in case the grid config is not here yet, let's
-			const count = this.gridConfig ? this.gridConfig.count : this.list.length
-			return Math.floor(index / count)
-		},
-
-		/**
-		 * Round the provided number to a tens of its value
-		 *
-		 * @param {number} number the number to round
-		 * @returns {number}
-		 */
-		roundToTen(number) {
-			return Math.floor(number / 10) * 10
 		},
 
 		getFormatedDate(string, format) {
@@ -224,7 +134,7 @@ export default {
 }
 
 .grid-title {
-	grid-column: 1/8;
+	grid-column: 1/-1;
 	padding: 36px 0 12px 0;
 	background:#fff;
 	margin: 0;
