@@ -31,7 +31,9 @@ const oldPrepareRequestOptions = request.prepareRequestOptions
 request.prepareRequestOptions = function(requestOptions, methodOptions) {
 	// add our cancelToken support
 	if (methodOptions.cancelToken && typeof methodOptions.cancelToken === 'object') {
-		requestOptions.cancelToken = Object.assign({}, requestOptions.cancelToken || {}, methodOptions.cancelToken)
+		requestOptions.cancelToken = Object.assign({
+			throwIfRequested: () => {},
+		}, requestOptions.cancelToken || {}, methodOptions.cancelToken)
 	}
 
 	// exploit old method
